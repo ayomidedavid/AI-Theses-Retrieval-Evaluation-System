@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – BMTS-Rank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --primary: #3b82f6;
+            --accent: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(148, 163, 184, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at 30% 40%, rgba(59,130,246,0.12), transparent 55%),
+                        radial-gradient(circle at 75% 70%, rgba(139,92,246,0.1), transparent 45%);
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: fadeIn .5s ease-out;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        .logo { text-align: center; margin-bottom: 2rem; }
+        .logo h1 { font-size: 2rem; font-weight: 700; }
+        .gradient-text { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; }
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; margin-top: 1rem; }
+        input {
+            width: 100%; padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-main);
+            font-family: inherit; font-size: 0.95rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        input:focus { border-color: var(--primary); }
+        .btn {
+            width: 100%; margin-top: 1.5rem; padding: 0.85rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none; border-radius: 8px; color: #fff;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .footer-link { text-align: center; margin-top: 1.25rem; font-size: 0.875rem; color: var(--text-muted); }
+        .footer-link a { color: var(--primary); text-decoration: none; }
+        .error-msg { color: #f87171; font-size: 0.85rem; margin-top: 1rem; text-align: center; display: none; }
+        .success-msg { color: #4ade80; font-size: 0.85rem; margin-top: 1rem; text-align: center; display: none; }
+        /* Light theme overrides */
+        body.light-theme {
+            --bg-dark: #f8fafc;
+            --bg-card: rgba(255,255,255,0.95);
+            --primary: #1e3a8a;
+            --accent: #7c3aed;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: rgba(15,23,42,0.06);
+        }
+        /* Theme toggle button */
+        #themeToggle { position: fixed; top: 12px; right: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.06); color: inherit; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <button id="themeToggle" aria-label="Toggle theme">🌙</button>
+    <div class="card">
+        <div class="logo">
+            <h1><span class="gradient-text">BMTS</span>-Rank</h1>
+            <p>Research Intelligence Platform</p>
+        </div>
+        <form id="loginForm">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="you@example.com" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="••••••••" required>
+
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+        <div class="error-msg" id="errorMsg"></div>
+        <div class="footer-link">
+            Don't have an account? <a href="/register">Register here</a>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle (persist in localStorage)
+        (function(){
+            const btn = document.getElementById('themeToggle');
+            const apply = (t) => {
+                if (t === 'light') document.body.classList.add('light-theme');
+                else document.body.classList.remove('light-theme');
+                try { localStorage.setItem('theme', t); } catch(e){}
+                btn.textContent = (t === 'light') ? '🌞' : '🌙';
+            };
+            const stored = (()=>{try{return localStorage.getItem('theme')}catch(e){return null}})();
+            apply(stored === 'light' ? 'light' : 'dark');
+            btn.addEventListener('click', ()=> apply(document.body.classList.contains('light-theme') ? 'dark' : 'light'));
+        })();
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errEl = document.getElementById('errorMsg');
+            errEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.href = '/';
+                } else {
+                    errEl.textContent = data.error || 'Login failed.';
+                    errEl.style.display = 'block';
+                }
+            } catch (err) {
+                errEl.textContent = 'Network error. Is the server running?';
+                errEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

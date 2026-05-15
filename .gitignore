@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Sensitive data
+.env
+
+# Project specific data and artifacts
+data/
+downloaded_pdfs/
+models/
+research/
+app/model.pth
+*.pdf
+*.docx
+*.txt
+*.png
+*.DLL
+*.inf
+*.pnf
+*.cat
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Flask instance folder
+instance/
+
+# Notebooks
+.ipynb_checkpoints
