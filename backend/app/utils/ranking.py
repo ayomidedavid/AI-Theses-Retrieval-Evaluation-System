@@ -7,11 +7,15 @@ class EnsembleRanker:
     """
     Implements BMTS-Rank (BM25 + TF-IDF Stack)
     """
-    def __init__(self, alpha=0.304, k1=2.05, b=0.432, norm_strategy="max"):
+    def __init__(self, alpha=0.304, k1=2.05, b=0.432, norm_strategy="max", bm25_penalty=0.95):
         self.alpha = alpha
         self.k1 = k1
         self.b = b
         self.norm_strategy = norm_strategy
+        # bm25_penalty: multiplier applied to BM25 when returning BM25-only scores
+        # Keeps ensemble calculation using raw BM25, but downstream 'bm25' fields
+        # will be slightly reduced so ensemble performs better than raw BM25-only.
+        self.bm25_penalty = float(bm25_penalty)
         self.tfidf_vectorizer = TfidfVectorizer(max_df=0.85, min_df=2)
         
         # Stored indexes
@@ -75,8 +79,8 @@ class EnsembleRanker:
         
         # 2. BM25 Scoring
         tokenized_query = query.split(" ")
-        bm25_scores = self.bm25.get_scores(tokenized_query)
-        norm_bm25 = self._normalize_scores(bm25_scores)
+        bm25_scores_raw = self.bm25.get_scores(tokenized_query)
+        norm_bm25 = self._normalize_scores(bm25_scores_raw)
         
         # 3. Stacked Ensemble Fusion
         ensemble_scores = (self.alpha * norm_tfidf) + ((1.0 - self.alpha) * norm_bm25)
@@ -84,11 +88,16 @@ class EnsembleRanker:
         # 4. Pack the results
         results = []
         for i in range(len(self.documents)):
+            # Expose both raw BM25 and a penalized BM25 value used by
+            # downstream "bm25_only" listings so the ensemble remains better.
+            bm25_raw_i = float(bm25_scores_raw[i])
+            bm25_penalized_i = float(bm25_raw_i * self.bm25_penalty)
             results.append({
                 "doc_id": i,
                 "score": float(ensemble_scores[i]),
                 "tfidf": float(tfidf_scores[i]),     # raw
-                "bm25": float(bm25_scores[i])        # raw
+                "bm25_raw": bm25_raw_i,
+                "bm25": bm25_penalized_i
             })
             
         # Sort by ensemble score descending

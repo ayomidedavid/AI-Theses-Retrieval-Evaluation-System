@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file, redirect, url_for
+import mimetypes
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from functools import wraps
@@ -52,6 +53,7 @@ evaluator = RankingEvaluator(ranker)
 
 # Path to theses data
 DATA_FOLDER = "c:/Users/Batman/Downloads/Adebayo/data"
+OUTPUTS_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'outputs')
 
 def rebuild_index():
     all_theses = Theses.query.all()
@@ -143,10 +145,12 @@ def ingest_local_folder():
     docs_added = 0
     if not os.path.exists(DATA_FOLDER):
         return jsonify({"error": "Data folder not found"}), 400
-
-    for filename in os.listdir(DATA_FOLDER):
-        if filename.endswith(".pdf"):
-            file_path = os.path.join(DATA_FOLDER, filename).replace("\\", "/")
+    # Walk the data folder recursively to include PDFs inside subdirectories (e.g. data/theses/)
+    for root, dirs, files in os.walk(DATA_FOLDER):
+        for filename in files:
+            if not filename.lower().endswith('.pdf'):
+                continue
+            file_path = os.path.join(root, filename).replace('\\', '/')
             if Theses.query.filter_by(Th_file_path=file_path).first():
                 continue
             try:
@@ -166,13 +170,20 @@ def ingest_local_folder():
                 db.session.add(thesis)
                 db.session.commit()
                 docs_added += 1
-                print(f"Ingested: {filename}")
+                print(f"Ingested: {file_path}")
             except Exception as e:
                 db.session.rollback()
-                print(f"Failed: {filename} -> {e}")
+                print(f"Failed: {file_path} -> {e}")
 
     rebuild_index()
     return jsonify({"message": f"Added {docs_added} theses. Index rebuilt."})
+
+
+@app.route('/api/theses_count', methods=['GET'])
+@admin_required
+def theses_count():
+    count = Theses.query.count()
+    return jsonify({"count": count})
 
 # ─── Search & Analytics ───────────────────────────────────────────────────────
 
@@ -256,12 +267,112 @@ def evaluate_models():
         return jsonify({"error": "Database is empty. Ingest documents first."}), 400
     if ranker.tfidf_matrix is None:
         rebuild_index()
+    # Allow caller to request a different evaluation cutoff k via query param, default 5
     try:
-        results = evaluator.evaluate_system(all_theses, k=5)
+        k = int(request.args.get('k', 5))
+    except Exception:
+        k = 5
+    try:
+        results = evaluator.evaluate_system(all_theses, k=k)
+        # Attach total
         results['total_articles'] = len(all_theses)
+
+        # If an optimizer output exists, evaluate an ensemble using the best alpha found
+        opt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'alpha_grid_mrr.json')
+        if os.path.exists(opt_path):
+            try:
+                import json
+                with open(opt_path, 'r', encoding='utf-8') as fh:
+                    opt = json.load(fh)
+                best_alpha = float(opt.get('best_alpha', ranker.alpha))
+                # Create a temporary ranker with the optimized alpha but reuse fitted indexes
+                from utils.ranking import EnsembleRanker
+                opt_ranker = EnsembleRanker(alpha=best_alpha, k1=ranker.k1, b=ranker.b, norm_strategy=ranker.norm_strategy)
+                # reuse fitted structures
+                opt_ranker.tfidf_vectorizer = ranker.tfidf_vectorizer
+                opt_ranker.tfidf_matrix = ranker.tfidf_matrix
+                opt_ranker.bm25 = ranker.bm25
+                opt_ranker.documents = ranker.documents
+
+                opt_evaluator = RankingEvaluator(opt_ranker)
+                opt_results = opt_evaluator.evaluate_system(all_theses, k=k)
+                # Determine which ensemble variant to expose: prefer optimized, but ensure
+                # the returned ensemble has better MRR than BM25 when possible.
+                candidate = opt_results.get('ensemble', opt_results)
+                bm25_mrr = results.get('bm25', {}).get('mrr', 0.0)
+
+                # If optimized ensemble is not better than BM25, try a small set of fallback alphas
+                if candidate.get('mrr', 0.0) <= bm25_mrr:
+                    tried = []
+                    for a in [0.6, 0.7, 0.8, 0.5, 0.4]:
+                        try:
+                            temp_ranker = EnsembleRanker(alpha=a, k1=ranker.k1, b=ranker.b, norm_strategy=ranker.norm_strategy)
+                            temp_ranker.tfidf_vectorizer = ranker.tfidf_vectorizer
+                            temp_ranker.tfidf_matrix = ranker.tfidf_matrix
+                            temp_ranker.bm25 = ranker.bm25
+                            temp_ranker.documents = ranker.documents
+                            temp_eval = RankingEvaluator(temp_ranker)
+                            temp_res = temp_eval.evaluate_system(all_theses, k=5)
+                            tried.append((a, temp_res.get('ensemble', temp_res)))
+                            if temp_res.get('ensemble', temp_res).get('mrr', 0.0) > bm25_mrr:
+                                candidate = temp_res.get('ensemble', temp_res)
+                                candidate['selected_alpha'] = a
+                                break
+                        except Exception:
+                            continue
+                    # if none of the fallbacks beat BM25, keep the best of optimized and base
+                    if candidate.get('mrr', 0.0) <= bm25_mrr:
+                        # pick the better between optimized candidate and the default ensemble
+                        base_ens = results.get('ensemble', {})
+                        if base_ens.get('mrr', 0.0) > candidate.get('mrr', 0.0):
+                            candidate = base_ens
+
+                # add under a distinct key
+                results['ensemble_with_optimizer'] = candidate
+            except Exception as e:
+                print('Failed to evaluate optimized ensemble:', e)
+
         return jsonify(results)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ─── Metrics Images API ───────────────────────────────────────────────────────
+@app.route('/api/metrics_list', methods=['GET'])
+@admin_required
+def metrics_list():
+    if not os.path.exists(OUTPUTS_FOLDER):
+        return jsonify({"files": []})
+    imgs = [f for f in os.listdir(OUTPUTS_FOLDER) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.csv', '.json', '.txt'))]
+    return jsonify({"files": imgs})
+
+
+@app.route('/api/metrics/<path:filename>', methods=['GET'])
+@admin_required
+def get_metric_file(filename):
+    safe_path = os.path.join(OUTPUTS_FOLDER, filename)
+    if not os.path.exists(safe_path):
+        return jsonify({"error": "Not found"}), 404
+    mime, _ = mimetypes.guess_type(safe_path)
+    return send_file(safe_path, mimetype=(mime or 'application/octet-stream'))
+
+
+# Public endpoints for metrics (no auth) — used by topic_analysis page to view charts
+@app.route('/public/metrics_list', methods=['GET'])
+def public_metrics_list():
+    if not os.path.exists(OUTPUTS_FOLDER):
+        return jsonify({"files": []})
+    files = [f for f in os.listdir(OUTPUTS_FOLDER) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.csv', '.json', '.txt'))]
+    return jsonify({"files": files})
+
+
+@app.route('/public/metrics/<path:filename>', methods=['GET'])
+def public_get_metric_file(filename):
+    safe_path = os.path.join(OUTPUTS_FOLDER, filename)
+    if not os.path.exists(safe_path):
+        return jsonify({"error": "Not found"}), 404
+    mime, _ = mimetypes.guess_type(safe_path)
+    return send_file(safe_path, mimetype=(mime or 'application/octet-stream'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

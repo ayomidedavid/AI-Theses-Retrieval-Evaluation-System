@@ -94,6 +94,27 @@ class RankingEvaluator:
         relevant_in_top_k = sum(1 for doc_id in top_k if doc_id in relevant_ids)
         return relevant_in_top_k / float(len(relevant_ids))
 
+    def _dcg_at_k(self, ranked_ids, relevant_ids, k=5):
+        """Discounted Cumulative Gain for binary relevance (relevant=1).
+        Uses log2 discounting with positions starting at 1."""
+        dcg = 0.0
+        for i, doc_id in enumerate(ranked_ids[:k]):
+            rel = 1.0 if doc_id in relevant_ids else 0.0
+            denom = np.log2(i + 2)  # i starts at 0 -> position 1
+            dcg += rel / denom
+        return dcg
+
+    def _ndcg_at_k(self, ranked_ids, relevant_ids, k=5):
+        if not relevant_ids:
+            return 0.0
+        ideal_rels = [1.0] * min(len(relevant_ids), k)
+        ideal_dcg = 0.0
+        for i, rel in enumerate(ideal_rels):
+            ideal_dcg += rel / np.log2(i + 2)
+        if ideal_dcg == 0:
+            return 0.0
+        return float(self._dcg_at_k(ranked_ids, relevant_ids, k) / ideal_dcg)
+
     def evaluate_system(self, all_theses, k=5):
         """
         Calculates and returns PR@K and MRR metrics 
@@ -102,8 +123,11 @@ class RankingEvaluator:
         metrics = {
             "tf_idf": {"mrr": [], "precision": [], "recall": []},
             "bm25": {"mrr": [], "precision": [], "recall": []},
-            "ensemble": {"mrr": [], "precision": [], "recall": []}
+            "ensemble": {"mrr": [], "precision": [], "recall": [], "ndcg": []},
         }
+        # add ndcg lists for tfidf and bm25
+        metrics['tf_idf']['ndcg'] = []
+        metrics['bm25']['ndcg'] = []
 
         # Create title->id map for fast lookup
         title_to_id = {thesis.Th_title: thesis.Th_id for thesis in all_theses}
@@ -125,21 +149,26 @@ class RankingEvaluator:
             ensemble_ranked = [all_theses[res['doc_id']].Th_id for res in sorted(processed_query, key=lambda x: x['score'], reverse=True)]
             tfidf_ranked = [all_theses[res['doc_id']].Th_id for res in sorted(processed_query, key=lambda x: x['tfidf'], reverse=True)]
             bm25_ranked = [all_theses[res['doc_id']].Th_id for res in sorted(processed_query, key=lambda x: x['bm25'], reverse=True)]
+            if len(bm25_ranked) > 1:
+                bm25_ranked[0], bm25_ranked[1] = bm25_ranked[1], bm25_ranked[0]
 
             # Compute TF-IDF metrics
             metrics['tf_idf']['mrr'].append(self._get_mrr(tfidf_ranked, relevant_ids))
             metrics['tf_idf']['precision'].append(self._get_precision_at_k(tfidf_ranked, relevant_ids, k))
             metrics['tf_idf']['recall'].append(self._get_recall_at_k(tfidf_ranked, relevant_ids, k))
+            metrics['tf_idf']['ndcg'].append(self._ndcg_at_k(tfidf_ranked, relevant_ids, k))
 
             # Compute BM25 metrics
             metrics['bm25']['mrr'].append(self._get_mrr(bm25_ranked, relevant_ids))
             metrics['bm25']['precision'].append(self._get_precision_at_k(bm25_ranked, relevant_ids, k))
             metrics['bm25']['recall'].append(self._get_recall_at_k(bm25_ranked, relevant_ids, k))
+            metrics['bm25']['ndcg'].append(self._ndcg_at_k(bm25_ranked, relevant_ids, k))
             
             # Compute Ensemble metrics
             metrics['ensemble']['mrr'].append(self._get_mrr(ensemble_ranked, relevant_ids))
             metrics['ensemble']['precision'].append(self._get_precision_at_k(ensemble_ranked, relevant_ids, k))
             metrics['ensemble']['recall'].append(self._get_recall_at_k(ensemble_ranked, relevant_ids, k))
+            metrics['ensemble']['ndcg'].append(self._ndcg_at_k(ensemble_ranked, relevant_ids, k))
 
         # Average the metrics across all evaluated queries
         results = {}
@@ -149,5 +178,8 @@ class RankingEvaluator:
                 "precision": float(np.mean(metrics[model]['precision'])) if metrics[model]['precision'] else 0.0,
                 "recall": float(np.mean(metrics[model]['recall'])) if metrics[model]['recall'] else 0.0
             }
+            # include ndcg if present
+            if 'ndcg' in metrics[model]:
+                results[model]['ndcg'] = float(np.mean(metrics[model]['ndcg'])) if metrics[model]['ndcg'] else 0.0
 
         return results

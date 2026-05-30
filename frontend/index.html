@@ -45,7 +45,15 @@
             
             <div class="controls">
                 <button id="ingestLocalBtn" class="secondary-btn">Ingest Local Folder</button>
-                <button id="evaluateBtn" class="secondary-btn" style="border-color: var(--accent); color: var(--accent);">Evaluate System</button>
+                <label for="evalK" style="margin-left:8px; font-size:0.85rem; color:var(--text-muted);">Eval K:</label>
+                <select id="evalK" style="margin-left:6px; max-width:80px; border-radius:6px; padding:0.35rem; background:var(--surface-light); color:var(--text-main);">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+                <button id="evaluateBtn" class="secondary-btn" style="border-color: var(--accent); color: var(--accent); margin-left:8px;">Evaluate System</button>
+                <a id="topicPageBtn" class="secondary-btn" href="/charts.html" style="margin-left:8px;">Charts</a>
                 <div id="statusMessage" class="status-message"></div>
             </div>
 

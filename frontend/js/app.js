@@ -64,6 +64,56 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     })
                     .catch(e => console.error("Could not load years", e));
+                // Also fetch any generated metric images and render them on the dashboard
+                const fetchAndRenderMetrics = async () => {
+                    try {
+                        const imgsRes = await fetch(`${API_BASE}/metrics_list`, { credentials: 'include' });
+                        if (!imgsRes.ok) return;
+                        const imgs = await imgsRes.json();
+                        if (!imgs.images || !imgs.images.length) return;
+
+                        const gallery = document.createElement('div');
+                        gallery.style.display = 'flex';
+                        gallery.style.gap = '1rem';
+                        gallery.style.flexWrap = 'wrap';
+                        gallery.style.marginTop = '1rem';
+                        gallery.id = 'metricsGallery';
+
+                        imgs.images.forEach(name => {
+                            const wrapper = document.createElement('div');
+                            wrapper.style.width = '280px';
+                            wrapper.style.background = 'var(--card-bg)';
+                            wrapper.style.padding = '0.5rem';
+                            wrapper.style.borderRadius = '6px';
+                            const img = document.createElement('img');
+                            img.src = `${API_BASE}/metrics/${encodeURIComponent(name)}`;
+                            img.alt = name;
+                            img.style.width = '100%';
+                            img.style.height = 'auto';
+                            wrapper.appendChild(img);
+                            const lbl = document.createElement('div');
+                            lbl.textContent = name;
+                            lbl.style.fontSize = '0.8rem';
+                            lbl.style.marginTop = '0.35rem';
+                            wrapper.appendChild(lbl);
+                            gallery.appendChild(wrapper);
+                        });
+
+                        // insert gallery above the results container
+                        const results = document.getElementById('resultsContainer');
+                        if (results) {
+                            const node = document.createElement('div');
+                            node.className = 'result-card';
+                            const heading = document.createElement('h3');
+                            heading.textContent = 'Metric Visualizations';
+                            heading.style.marginTop = '0';
+                            node.appendChild(heading);
+                            node.appendChild(gallery);
+                            results.parentNode.insertBefore(node, results);
+                        }
+                    } catch (e) { console.warn('Could not load metric images for dashboard', e); }
+                };
+                fetchAndRenderMetrics();
             } else {
                 window.location.href = '/login';
             }
@@ -182,7 +232,9 @@ document.addEventListener("DOMContentLoaded", () => {
         resultsContainer.innerHTML = '<div class="initial-state">Calculating MRR, Precision, and Recall...</div>';
         
         try {
-            const res = await fetch(`${API_BASE}/evaluate`, { method: "GET" });
+            const kSel = document.getElementById('evalK');
+            const kVal = kSel ? (parseInt(kSel.value) || 5) : 5;
+            const res = await fetch(`${API_BASE}/evaluate?k=${kVal}`, { method: "GET" });
             const data = await res.json();
             
             if (res.ok) {
@@ -195,38 +247,49 @@ document.addEventListener("DOMContentLoaded", () => {
                                 Total Articles: ${data.total_articles}
                             </span>
                         </div>
-                        <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">Averages across Ground-truth queries (k=5)</p>
+                        <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">Averages across Ground-truth queries (k=${kVal})</p>
                         
                         <div class="chart-container" style="position: relative; height:300px; width:100%; margin-bottom: 2rem;">
                             <canvas id="metricsChart"></canvas>
                         </div>
 
-                        <table style="width: 100%; border-collapse: collapse; color: var(--text-main); margin-top: 1rem;">
-                            <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
-                                <th style="padding: 10px;">Model</th>
-                                <th style="padding: 10px;">MRR</th>
-                                <th style="padding: 10px;">Precision@5</th>
-                                <th style="padding: 10px;">Recall@5</th>
-                            </tr>
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 10px; color: var(--accent);">BMTS Ensemble</td>
-                                <td style="padding: 10px;">${data.ensemble.mrr.toFixed(3)}</td>
-                                <td style="padding: 10px;">${data.ensemble.precision.toFixed(3)}</td>
-                                <td style="padding: 10px;">${data.ensemble.recall.toFixed(3)}</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 10px; color: var(--text-muted);">TF-IDF Only</td>
-                                <td style="padding: 10px;">${data.tf_idf.mrr.toFixed(3)}</td>
-                                <td style="padding: 10px;">${data.tf_idf.precision.toFixed(3)}</td>
-                                <td style="padding: 10px;">${data.tf_idf.recall.toFixed(3)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px; color: var(--text-muted);">BM25 Only</td>
-                                <td style="padding: 10px;">${data.bm25.mrr.toFixed(3)}</td>
-                                <td style="padding: 10px;">${data.bm25.precision.toFixed(3)}</td>
-                                <td style="padding: 10px;">${data.bm25.recall.toFixed(3)}</td>
-                            </tr>
-                        </table>
+                                <table style="width: 100%; border-collapse: collapse; color: var(--text-main); margin-top: 1rem;">
+                                    <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                                        <th style="padding: 10px;">Model</th>
+                                        <th style="padding: 10px;">MRR</th>
+                                        <th style="padding: 10px;">Precision@${kVal}</th>
+                                        <th style="padding: 10px;">Recall@${kVal}</th>
+                                        <th style="padding: 10px;">NDCG@${kVal}</th>
+                                    </tr>
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <td style="padding: 10px; color: var(--accent);">BMTS Ensemble</td>
+                                            <td style="padding: 10px;">${data.ensemble.mrr.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${data.ensemble.precision.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${data.ensemble.recall.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${(data.ensemble.ndcg||0).toFixed(3)}</td>
+                                        </tr>
+                                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                                    <td style="padding: 10px; color: var(--accent);">BMTS Ensemble (Optimized)</td>
+                                                    <td style="padding: 10px;">${(data.ensemble_with_optimizer?data.ensemble_with_optimizer.mrr:0).toFixed(3)}</td>
+                                                    <td style="padding: 10px;">${(data.ensemble_with_optimizer?data.ensemble_with_optimizer.precision:0).toFixed(3)}</td>
+                                                    <td style="padding: 10px;">${(data.ensemble_with_optimizer?data.ensemble_with_optimizer.recall:0).toFixed(3)}</td>
+                                                    <td style="padding: 10px;">${(data.ensemble_with_optimizer?(data.ensemble_with_optimizer.ndcg||0):0).toFixed(3)}</td>
+                                                </tr>
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <td style="padding: 10px; color: var(--text-muted);">TF-IDF Only</td>
+                                            <td style="padding: 10px;">${data.tf_idf.mrr.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${data.tf_idf.precision.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${data.tf_idf.recall.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${(data.tf_idf.ndcg||0).toFixed(3)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 10px; color: var(--text-muted);">BM25 Only</td>
+                                            <td style="padding: 10px;">${data.bm25.mrr.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${data.bm25.precision.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${data.bm25.recall.toFixed(3)}</td>
+                                            <td style="padding: 10px;">${(data.bm25.ndcg||0).toFixed(3)}</td>
+                                        </tr>
+                                    </table>
                     </div>
                 `;
 
@@ -234,32 +297,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 const ctx = document.getElementById('metricsChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'bar',
-                    data: {
-                        labels: ['MRR', 'Precision@5', 'Recall@5'],
-                        datasets: [
-                            {
-                                label: 'BMTS Ensemble',
-                                data: [data.ensemble.mrr, data.ensemble.precision, data.ensemble.recall],
-                                backgroundColor: 'rgba(139, 92, 246, 0.6)',
-                                borderColor: 'rgba(139, 92, 246, 1)',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'TF-IDF',
-                                data: [data.tf_idf.mrr, data.tf_idf.precision, data.tf_idf.recall],
-                                backgroundColor: 'rgba(59, 130, 246, 0.4)',
-                                borderColor: 'rgba(59, 130, 246, 1)',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'BM25',
-                                data: [data.bm25.mrr, data.bm25.precision, data.bm25.recall],
-                                backgroundColor: 'rgba(148, 163, 184, 0.3)',
-                                borderColor: 'rgba(148, 163, 184, 1)',
-                                borderWidth: 1
-                            }
-                        ]
-                    },
+                        data: {
+                            labels: (function(){ return ['MRR', `Precision@${kVal}`, `Recall@${kVal}`, `NDCG@${kVal}`]; })(),
+                            datasets: [
+                                {
+                                    label: 'BMTS Ensemble',
+                                    data: [data.ensemble.mrr, data.ensemble.precision, data.ensemble.recall, (data.ensemble.ndcg||0)],
+                                    backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                                    borderColor: 'rgba(139, 92, 246, 1)',
+                                    borderWidth: 1
+                                },
+                                    {
+                                        label: 'BMTS Ensemble (Optimized)',
+                                        data: [data.ensemble_with_optimizer?data.ensemble_with_optimizer.mrr:0, data.ensemble_with_optimizer?data.ensemble_with_optimizer.precision:0, data.ensemble_with_optimizer?data.ensemble_with_optimizer.recall:0, data.ensemble_with_optimizer?(data.ensemble_with_optimizer.ndcg||0):0],
+                                        backgroundColor: 'rgba(99, 102, 241, 0.45)',
+                                        borderColor: 'rgba(99, 102, 241, 1)',
+                                        borderWidth: 1
+                                    },
+                                {
+                                    label: 'TF-IDF',
+                                    data: [data.tf_idf.mrr, data.tf_idf.precision, data.tf_idf.recall, (data.tf_idf.ndcg||0)],
+                                    backgroundColor: 'rgba(59, 130, 246, 0.4)',
+                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                        label: 'BM25',
+                                        data: [data.bm25.mrr, data.bm25.precision, data.bm25.recall, (data.bm25.ndcg||0)],
+                                    backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                                    borderColor: 'rgba(148, 163, 184, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
@@ -282,6 +352,43 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
                 });
+
+                // Fetch any generated metric images (heatmaps / PNGs) and display them
+                try {
+                    const imgsRes = await fetch(`${API_BASE}/metrics_list`, { credentials: 'include' });
+                    if (imgsRes.ok) {
+                        const imgs = await imgsRes.json();
+                        if (imgs.images && imgs.images.length) {
+                            const gallery = document.createElement('div');
+                            gallery.style.display = 'flex';
+                            gallery.style.gap = '1rem';
+                            gallery.style.flexWrap = 'wrap';
+                            gallery.style.marginTop = '1.5rem';
+                            imgs.images.forEach(name => {
+                                const wrapper = document.createElement('div');
+                                wrapper.style.width = '320px';
+                                wrapper.style.background = 'var(--card-bg)';
+                                wrapper.style.padding = '0.5rem';
+                                wrapper.style.borderRadius = '6px';
+                                const img = document.createElement('img');
+                                img.src = `${API_BASE}/metrics/${encodeURIComponent(name)}`;
+                                img.alt = name;
+                                img.style.width = '100%';
+                                img.style.height = 'auto';
+                                wrapper.appendChild(img);
+                                const lbl = document.createElement('div');
+                                lbl.textContent = name;
+                                lbl.style.fontSize = '0.8rem';
+                                lbl.style.marginTop = '0.35rem';
+                                wrapper.appendChild(lbl);
+                                gallery.appendChild(wrapper);
+                            });
+                            // append gallery below the table/chart
+                            const container = document.querySelector('.result-card');
+                            if (container) container.appendChild(gallery);
+                        }
+                    }
+                } catch (e) { console.warn('Could not load metric images', e); }
             } else {
                 showMessage(data.error || "Evaluation failed.", true);
                 resultsContainer.innerHTML = `<div class="initial-state">${data.error}</div>`;

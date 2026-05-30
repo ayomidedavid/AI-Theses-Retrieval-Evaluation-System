@@ -1,0 +1,223 @@
+{
+  "poverty dynamics": {
+    "top5": [
+      {
+        "title": "AGRICULTURAL EMPLOYMENT AND POVERTY DYNAMICS AMONG RURAL HOUSEHOLDS  IN NIGERIA.pdf",
+        "id": 799,
+        "score": 0.9747257678757828,
+        "tfidf": 0.5086850029195,
+        "bm25": 13.369941105417533
+      },
+      {
+        "title": "MODIFIED GENERALISED FOSTER-GREER-THORBECKE INDEX IN UNIDIMENSIONAL POVERTY IN NIGERIA.pdf",
+        "id": 1245,
+        "score": 0.7452973402660976,
+        "tfidf": 0.5548114265360821,
+        "bm25": 8.477183116860814
+      },
+      {
+        "title": "EMPI RICAL ANALYSIS OF RURAL ELECTRIFICATION A ND ENERGY POVERTY IN NIGERIA.pdf",
+        "id": 1053,
+        "score": 0.5992860803863945,
+        "tfidf": 0.31705490817983983,
+        "bm25": 8.174891847245691
+      },
+      {
+        "title": "VULNERABILITY TO POVERTY AND LIVELIHOOD SECURITY AMONG RURAL HOUSEHOLDS IN SOUTHWESTERN NIGERIA.pdf",
+        "id": 1538,
+        "score": 0.5464874257566167,
+        "tfidf": 0.2435144677248241,
+        "bm25": 7.93470637256627
+      },
+      {
+        "title": "DEVELOPMENT OF MEMBERSHIP FUNCTION SCHEMES AND ASSESSMENT CRITERIA IN MULTIDIMENSIONAL POVERTY ANALYSIS.pdf",
+        "id": 977,
+        "score": 0.4920404673244431,
+        "tfidf": 0.15016831584958829,
+        "bm25": 7.871325254582851
+      }
+    ],
+    "tfidf_bm25_corr": 0.6643938043626767,
+    "docs_indexed": 774
+  },
+  "cancer disease classification": {
+    "top5": [
+      {
+        "title": "BREAST CANCER AND SPOUSAL RELATIONSHIP IN THE IBADAN METROPOLIS NIGERIA.pdf",
+        "id": 853,
+        "score": 1.0,
+        "tfidf": 0.34819865339199807,
+        "bm25": 13.718355395610157
+      },
+      {
+        "title": "BARRIERS TO EARLY DIAGNOSIS TUMOUR NECROSIS FACTOR AND RECEPTOR GENETIC VARIANTS AS POSSIBLE PREDICTORS FOR BREAST CANCER AMONG NIGERIAN WOMEN.pdf",
+        "id": 832,
+        "score": 0.8678560304002801,
+        "tfidf": 0.3259950525245073,
+        "bm25": 11.495848058416426
+      },
+      {
+        "title": "EFFECT S OF HAEMATOLOGIC  EDUCATION ON KNOWLEDGE ATTITUDE AND MANAGEMENT OF SICKLE CELL DISEASE AMONG IN -SCHOOL ADOLESCENTS IN IBADAN METROPOLIS NIGERIA.pdf",
+        "id": 1007,
+        "score": 0.8249787772084798,
+        "tfidf": 0.22650308421580106,
+        "bm25": 12.3628182729362
+      },
+      {
+        "title": "EFFECTS OF TWO TRAINING APPROACHES ON BREAST SELF - EXAMINATION FOR CANCER DETECTION AMONG WOMEN IN SELECTED LOCAL GOVERNMENT AREAS IN IBADAN.pdf",
+        "id": 1042,
+        "score": 0.7823016620494934,
+        "tfidf": 0.259072291447266,
+        "bm25": 10.961177936646338
+      },
+      {
+        "title": "KNOWLEDGE ATTITUDE S AND PREDICTORS OF CERVICAL CANCER SCREENING UPTAKE AMONG WOMEN IN OYO STATE NIGERIA.pdf",
+        "id": 1200,
+        "score": 0.7699604250129437,
+        "tfidf": 0.34025825042840213,
+        "bm25": 9.32085204835651
+      }
+    ],
+    "tfidf_bm25_corr": 0.8142934946884343,
+    "docs_indexed": 774
+  },
+  "predictive maintenance for industrial equipment": {
+    "top5": [
+      {
+        "title": "DEVELOPMENT OF A LIFE CYCLE COSTING MODEL FOR LIQUEFIED NATURAL GAS PRODUCTION SYSTEM.pdf",
+        "id": 966,
+        "score": 1.0,
+        "tfidf": 0.23037162112809687,
+        "bm25": 21.29090837729973
+      },
+      {
+        "title": "ORGANISATIONAL AND SOCIO -ECONOMIC FACTORS AS PREDICTORS OF RECREATIONAL SPORTS  PARTICIPATIN AMNG THE STAFF F FEDERAL COLLEGES OF EDUCATION  IN SUTHWESTERN NIGERIA.pdf",
+        "id": 1290,
+        "score": 0.5633143781702371,
+        "tfidf": 0.08111689933739072,
+        "bm25": 13.957534929731718
+      },
+      {
+        "title": "RISK MANAGEMENT PRACTICES AND INSURANCE POLICY AS PREDICTORS OF SUSTAINABLE PARTICIPATION IN SPORTS AMONG UNIVERSITY ATHLETES IN SOUTHWESTERN NIGERIA.pdf",
+        "id": 1393,
+        "score": 0.5593111659300851,
+        "tfidf": 0.08921211428346326,
+        "bm25": 13.508293262987408
+      },
+      {
+        "title": "DEVELOPMENT OF PREDICTIVE MODELS FOR SYNERGISTIC IMPACT OF AGE PERIOD OF EXPOSURE AND NOISE LEVEL IN QUARRIES  ON HEARING THRESHOLD OF WORKERS.pdf",
+        "id": 978,
+        "score": 0.5211029356531255,
+        "tfidf": 0.049622248469838266,
+        "bm25": 13.937624219938728
+      },
+      {
+        "title": "MAGNETIC AND GEOCHEMI CAL STUDIES OF HEAVY METAL POLLUTION IN SOILS AROUND METAL-SMELTING PLANTS IN OGIJO AND OT A AREAS SOUTHWESTERN NIGERIA.pdf",
+        "id": 1223,
+        "score": 0.43159070330134275,
+        "tfidf": 0.09952217427511896,
+        "bm25": 9.185085917118787
+      }
+    ],
+    "tfidf_bm25_corr": 0.845944094315098,
+    "docs_indexed": 774
+  },
+  "customer churn prediction": {
+    "top5": [
+      {
+        "title": "INTEGRATED MARKETING COMMUNICATION AND BRAND POSITIONING OF SELECTED NIGERIAN COMMERCIAL BANKS IN IBADAN.pdf",
+        "id": 1180,
+        "score": 1.0,
+        "tfidf": 0.36662476695747187,
+        "bm25": 12.13427385241453
+      },
+      {
+        "title": "CUSTOMERS\u2019 EXPERIENCES AND SATISFACTION WITH ONLINE SHOPPING IN LAGOS AND OYO STATES, NIGERIA.pdf",
+        "id": 926,
+        "score": 0.9377504277749149,
+        "tfidf": 0.3207081779630044,
+        "bm25": 11.712778779459205
+      },
+      {
+        "title": "DETERMINANTS PREVALENCE AND EFFECTS OF ELECTRICITY THEFT AMONG HOUSEHOLDS IN LAGOS STATE.pdf",
+        "id": 950,
+        "score": 0.6480770856251056,
+        "tfidf": 0.08950480809932371,
+        "bm25": 10.004865387821722
+      },
+      {
+        "title": "FEDERAL COMPETITION AND CONSUMER PROTECTION COMMISSION S ACTIVITIES AND CONSUMER SATISFACTION WITH PHARMACEUTICAL PRODUCT S  IN LAGOS STATE NIGERIA.pdf",
+        "id": 1090,
+        "score": 0.6050223165860952,
+        "tfidf": 0.09007076610637585,
+        "bm25": 9.246053919498399
+      },
+      {
+        "title": "IMPACT EVALUATION OF THE NATIONAL OPEN APPRENTICESHIP SCHEME OF THE NATIONAL DIRECTORATE OF EMPLOYMENT (NDE) IN THE SOUTH -WEST  NIGERIA (2008 -2017).pdf",
+        "id": 1154,
+        "score": 0.5978427831063772,
+        "tfidf": 0.08564375753215998,
+        "bm25": 9.184881811894273
+      }
+    ],
+    "tfidf_bm25_corr": 0.7589469804962213,
+    "docs_indexed": 774
+  },
+  "precision agriculture yield prediction": {
+    "top5": [
+      {
+        "title": "DYNAMICS OF WATER AND NUTRIENT USE STRESS DEVELOPMENT AND YIELD OF Corchorus olitorus Linn ..pdf",
+        "id": 995,
+        "score": 0.9812089994972163,
+        "tfidf": 0.11357029225614314,
+        "bm25": 15.73551973743566
+      },
+      {
+        "title": "EVALUATION OF CROPGRO-PEANUT MODEL FOR PREDICTING GROWTH AND YIELD OF GROUNDNUT ( Arachis hypogaea  L.) IN IBADAN AND OGBOMOSO NIGERIA.pdf",
+        "id": 1069,
+        "score": 0.8108225633071571,
+        "tfidf": 0.07238660918652348,
+        "bm25": 14.221611708091444
+      },
+      {
+        "title": "ONTOLOGICAL-BASED MOVIE CONTEXTUAL RECOMMENDER SYSTEM WITH PROBABILISTIC GRAPHICAL MODEL.pdf",
+        "id": 1283,
+        "score": 0.8080180156533909,
+        "tfidf": 0.12105287317977664,
+        "bm25": 11.395094013415358
+      },
+      {
+        "title": "YIELD OF CASSAVA ( Manihot esculenta  Crantz) VARIETIES AS INFLUENCED BY NPK APPLICATION AND STEM PROPERTIES IN TWO AGRO -ECOLOGIES OF NIGERIA.pdf",
+        "id": 1547,
+        "score": 0.606912683906352,
+        "tfidf": 0.09112505892380723,
+        "bm25": 8.54760630608941
+      },
+      {
+        "title": "GENETIC VARIABILITY AND ASSOCIATION MAPPING  FOR YIELD AND YIELD -RELATED  TRAITS IN AFRICAN YAM BEAN  Sphenostylis stenocarpa (Hochst ex. A. Rich) Harms.pdf",
+        "id": 1114,
+        "score": 0.5897482723507544,
+        "tfidf": 0.07979462824212938,
+        "bm25": 8.802849356729313
+      }
+    ],
+    "tfidf_bm25_corr": 0.8771943102668897,
+    "docs_indexed": 774
+  },
+  "fraud detection in payments": {
+    "top5": [
+      {
+        "title": "PROGRESSIVITY HORIZONTAL INEQUITY AND RERANKING IN HEALTH CARE FINANCING IN NIGERIA.pdf",
+        "id": 1341,
+        "score": 0.9673371210885622,
+        "tfidf": 0.09807505017959892,
+        "bm25": 8.954184665385583
+      },
+      {
+        "title": "CONTEXT, IDEOLOGY AND NEGOTIATION STRATEGIES IN POLITICAL INTERVIEWS IN NIGERIAN PRINT MEDIA.pdf",
+        "id": 914,
+        "score": 0.8982258555600727,
+        "tfidf": 0.06524115438048178,
+        "bm25": 9.395090865533387
+      },
+  ... (file truncated, full content saved)
